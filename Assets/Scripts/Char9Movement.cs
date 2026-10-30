@@ -16,7 +16,6 @@ public class Char9Movement : MonoBehaviour
     public float animationFadeTime = 0.12f;
 
     [Header("Interaction")]
-    public KeyCode interactKey = KeyCode.E;
     public KeyCode deathKey = KeyCode.F;
 
     private CharacterController controller;
@@ -119,11 +118,6 @@ public class Char9Movement : MonoBehaviour
         else
         {
             PlayAnimation(direction.sqrMagnitude > 0.001f ? "Run" : "Idle");
-        }
-
-        if (Input.GetKeyDown(interactKey) && controller.isGrounded && !isInteracting)
-        {
-            Interact();
         }
     }
 

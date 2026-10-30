@@ -112,8 +112,6 @@ public sealed class ObjectInteraction : MonoBehaviour
             _resetButton = null;
         }
 
-        if (_player != null && _player.CanInteract && Input.GetKeyDown(KeyCode.E) && IsNearestInteractable()) Interact();
-
         if (_player == null || _player.IsDead || _camera == null || !CanInteractFrom(_player.transform.position))
         {
             _button.gameObject.SetActive(false);
@@ -442,7 +440,7 @@ public sealed class ObjectInteraction : MonoBehaviour
         labelRect.offsetMax = Vector2.zero;
         var label = labelObject.GetComponent<Text>();
         label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        label.text = "E";
+        label.text = "Click";
         label.fontSize = 20;
         label.fontStyle = FontStyle.Bold;
         label.alignment = TextAnchor.MiddleCenter;

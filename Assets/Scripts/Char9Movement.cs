@@ -1,5 +1,4 @@
-
-using UnityEngine;
+﻿using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
 public class Char9Movement : MonoBehaviour
@@ -8,6 +7,9 @@ public class Char9Movement : MonoBehaviour
     public float moveSpeed = 5f;
     public float rotationSpeed = 10f;
     public float gravity = -9.81f;
+
+    [Header("Jump")]
+    public float jumpHeight = 2f;
 
     private CharacterController controller;
     private Vector3 velocity;
@@ -32,7 +34,15 @@ public class Char9Movement : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
         }
 
-        if (controller.isGrounded && velocity.y < 0) velocity.y = -2f;
+        if (controller.isGrounded && velocity.y < 0)
+        {
+            velocity.y = -2f;
+        }
+
+        if (controller.isGrounded && Input.GetKeyDown(KeyCode.Space))
+        {
+            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+        }
 
         velocity.y += gravity * Time.deltaTime;
         controller.Move(velocity * Time.deltaTime);

@@ -1005,6 +1005,27 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 3312062274566669101, guid: 38ee434db6e7091459582ef0f87de731, type: 3}
+--- !u!114 &648026231
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 648026226}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8db08444425d10a49ade8d465a0de38b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  opensDoor: 1
+  hinge: {fileID: 0}
+  openAngle: 95
+  interactionRange: 1.2
+  openDuration: 0.5
+  onInteract:
+    m_PersistentCalls:
+      m_Calls: []
+  linesUpRoom2Cubes: 0
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
@@ -1828,7 +1849,6 @@ MonoBehaviour:
   jumpHeight: 2.5
   characterAnimation: {fileID: 0}
   animationFadeTime: 0.12
-  interactKey: 101
   deathKey: 102
 --- !u!143 &1035874763
 CharacterController:
@@ -1849,13 +1869,13 @@ CharacterController:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Height: 3.4
+  m_Height: 2.2
   m_Radius: 0.5
   m_SlopeLimit: 45
   m_StepOffset: 0.3
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
-  m_Center: {x: 0, y: 1.7, z: 0}
+  m_Center: {x: 0, y: 1.1, z: 0}
 --- !u!4 &1035874764
 Transform:
   m_ObjectHideFlags: 0
@@ -2744,9 +2764,15 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -4931830253668557346, guid: 38ee434db6e7091459582ef0f87de731, type: 3}
       insertIndex: -1
       addedObject: {fileID: 648026230}
+    - targetCorrespondingSourceObject: {fileID: -4931830253668557346, guid: 38ee434db6e7091459582ef0f87de731, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 648026231}
     - targetCorrespondingSourceObject: {fileID: -4026643281169321309, guid: 38ee434db6e7091459582ef0f87de731, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1810955340}
+    - targetCorrespondingSourceObject: {fileID: -4026643281169321309, guid: 38ee434db6e7091459582ef0f87de731, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1810955341}
     - targetCorrespondingSourceObject: {fileID: -3106045130762367160, guid: 38ee434db6e7091459582ef0f87de731, type: 3}
       insertIndex: -1
       addedObject: {fileID: 375371794}
@@ -2853,6 +2879,27 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 3312062274566669101, guid: 38ee434db6e7091459582ef0f87de731, type: 3}
+--- !u!114 &1810955341
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1810955336}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8db08444425d10a49ade8d465a0de38b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  opensDoor: 1
+  hinge: {fileID: 0}
+  openAngle: 95
+  interactionRange: 1.2
+  openDuration: 0.5
+  onInteract:
+    m_PersistentCalls:
+      m_Calls: []
+  linesUpRoom2Cubes: 0
 --- !u!1 &1863308127 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -2391653844671688680, guid: c9ff998d776f1b94a813fe3430f3e997, type: 3}

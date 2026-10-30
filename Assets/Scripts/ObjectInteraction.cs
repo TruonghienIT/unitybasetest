@@ -10,10 +10,13 @@ public sealed class ObjectInteraction : MonoBehaviour
     [SerializeField] private bool opensDoor = true;
     [SerializeField] private Transform hinge;
     [SerializeField] private float openAngle = 95f;
-    [SerializeField] private float interactionRange = 2.4f;
+    [SerializeField] private float interactionRange = 1.2f;
     [SerializeField] private float openDuration = 0.5f;
     [SerializeField] private UnityEvent onInteract = new UnityEvent();
     [SerializeField] private bool linesUpRoom2Cubes;
+    [SerializeField] private Transform[] platformSteps = new Transform[3];
+    [SerializeField] private Vector3[] platformTargetLocalPositions = { new Vector3(0.1111f, 1.93f, 2.33f), new Vector3(-0.180f, 0.81f, 2.32f), new Vector3(-0.180f, -0.51f, 2.32f) };
+    [SerializeField] private float platformMoveDuration = 0.85f;
 
     private Collider _collider;
     private Renderer _renderer;
@@ -41,32 +44,18 @@ public sealed class ObjectInteraction : MonoBehaviour
         _renderer = GetComponent<Renderer>();
         _player = FindObjectOfType<Char9Movement>();
         _camera = Camera.main;
-        if (opensDoor)
-            FindHinge();
+        if (opensDoor) FindHinge();
     }
 
     private void Start()
     {
-
-        var switchObject = GameObject.Find("Cube_8.060");
-        if (switchObject != null)
-        {
-            var switchInteractable = switchObject.GetComponent<ObjectInteraction>();
-            if (switchInteractable == null)
-                switchInteractable = switchObject.AddComponent<ObjectInteraction>();
-            switchInteractable.opensDoor = false;
-            switchInteractable.linesUpRoom2Cubes = true;
-        }
-
         CreateIcon();
-        if (_topRightResetButton == null)
-            CreateTopRightResetButton();
+        if (_topRightResetButton == null) CreateTopRightResetButton();
     }
 
     private void Update()
     {
-        if (_button == null)
-            return;
+        if (_button == null) return;
 
         if (_player == null)
             _player = FindObjectOfType<Char9Movement>();
@@ -179,41 +168,28 @@ public sealed class ObjectInteraction : MonoBehaviour
 
     private IEnumerator LineUpRoom2Cubes()
     {
-        var platformObjects = new[]
+        if (platformSteps == null || platformTargetLocalPositions == null || platformSteps.Length == 0 || platformSteps.Length != platformTargetLocalPositions.Length) yield break;
+
+        for (int i = 0; i < platformSteps.Length; i++)
         {
-            GameObject.Find("Cube_8.062"),
-            GameObject.Find("Cube_8.063"),
-            GameObject.Find("Cube_8.064")
-        };
-        var targetPositions = new[]
-        {
-            new Vector3(0.1111f, 1.93f, 2.33f),
-            new Vector3(-0.180f, 0.81f, 2.32f),
-            new Vector3(-0.180f, -0.51f, 2.32f)
-        };
-        for (var i = 0; i < platformObjects.Length; i++)
-        {
-            if (platformObjects[i] == null) yield break;
+            if (platformSteps[i] == null) yield break;
         }
 
-        var startPositions = new Vector3[platformObjects.Length];
-        for (var i = 0; i < platformObjects.Length; i++)
-            startPositions[i] = platformObjects[i].transform.localPosition;
-
         _isMoving = true;
-        const float moveDuration = 0.85f;
-        var elapsed = 0f;
-        while (elapsed < moveDuration)
+        Vector3[] startPositions = new Vector3[platformSteps.Length];
+        for (int i = 0; i < platformSteps.Length; i++) startPositions[i] = platformSteps[i].localPosition;
+
+        float duration = Mathf.Max(0.01f, platformMoveDuration);
+        float elapsed = 0f;
+        while (elapsed < duration)
         {
-            var t = Mathf.SmoothStep(0f, 1f, elapsed / moveDuration);
-            for (var i = 0; i < platformObjects.Length; i++)
-                platformObjects[i].transform.localPosition = Vector3.Lerp(startPositions[i], targetPositions[i], t);
+            float t = Mathf.SmoothStep(0f, 1f, elapsed / duration);
+            for (int i = 0; i < platformSteps.Length; i++) platformSteps[i].localPosition = Vector3.Lerp(startPositions[i], platformTargetLocalPositions[i], t);
             elapsed += Time.deltaTime;
             yield return null;
         }
 
-        for (var i = 0; i < platformObjects.Length; i++)
-            platformObjects[i].transform.localPosition = targetPositions[i];
+        for (int i = 0; i < platformSteps.Length; i++) platformSteps[i].localPosition = platformTargetLocalPositions[i];
         _hasMovedRoom2Cubes = true;
         _isMoving = false;
     }
@@ -228,9 +204,7 @@ public sealed class ObjectInteraction : MonoBehaviour
         var meshFilter = GetComponent<MeshFilter>();
         var mesh = meshFilter != null ? meshFilter.sharedMesh : null;
         var localPanelAxis = (Quaternion.Inverse(_closedRotation) * _panelWidthAxis).normalized;
-        var halfWidth = mesh != null
-            ? Mathf.Abs(localPanelAxis.x) * mesh.bounds.extents.x + Mathf.Abs(localPanelAxis.y) * mesh.bounds.extents.y + Mathf.Abs(localPanelAxis.z) * mesh.bounds.extents.z
-            : Vector3.ProjectOnPlane((_renderer != null ? _renderer.bounds.center : transform.position) - _hingePoint, _hingeAxis).magnitude;
+        var halfWidth = mesh != null ? Mathf.Abs(localPanelAxis.x) * mesh.bounds.extents.x + Mathf.Abs(localPanelAxis.y) * mesh.bounds.extents.y + Mathf.Abs(localPanelAxis.z) * mesh.bounds.extents.z : Vector3.ProjectOnPlane((_renderer != null ? _renderer.bounds.center : transform.position) - _hingePoint, _hingeAxis).magnitude;
         var panelWidth = Mathf.Max(halfWidth * 2f * transform.TransformVector(localPanelAxis).magnitude, 0.1f);
         var colliderBounds = _collider != null ? _collider.bounds : (_renderer != null ? _renderer.bounds : new Bounds(transform.position, Vector3.one));
         var panelHalfThickness = Mathf.Min(colliderBounds.extents.x, colliderBounds.extents.z);
@@ -394,18 +368,14 @@ public sealed class ObjectInteraction : MonoBehaviour
     private void SetDoorPose(float openFraction)
     {
         var delta = Quaternion.AngleAxis(openAngle * _inwardDirection * openFraction, _hingeAxis);
-        transform.SetPositionAndRotation(
-            _hingePoint + delta * (_closedPosition - _hingePoint),
-            delta * _closedRotation);
+        transform.SetPositionAndRotation(_hingePoint + delta * (_closedPosition - _hingePoint), delta * _closedRotation);
     }
 
     private Vector3 IconPosition()
     {
         if (_renderer == null)
             _renderer = GetComponentInChildren<Renderer>();
-        return _renderer != null
-            ? _renderer.bounds.center + Vector3.up * (_renderer.bounds.extents.y + 0.35f)
-            : transform.position + Vector3.up;
+        return _renderer != null ? _renderer.bounds.center + Vector3.up * (_renderer.bounds.extents.y + 0.35f) : transform.position + Vector3.up;
     }
 
     private void CreateIcon()

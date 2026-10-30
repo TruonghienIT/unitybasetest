@@ -29,6 +29,9 @@ public class Char9Movement : MonoBehaviour
     private float interactionEndTime;
     private string currentAnimation = "";
 
+    public bool IsDead => isDead;
+    public bool CanInteract => !isDead && !isInteracting && controller != null && controller.enabled && controller.isGrounded;
+
     void Awake()
     {
         controller = GetComponent<CharacterController>();

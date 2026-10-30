@@ -1,16 +1,15 @@
-﻿
-using UnityEngine;
+﻿using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
 public class Char9Movement : MonoBehaviour
 {
     [Header("Movement")]
-    public float moveSpeed = 5f;
+    public float moveSpeed = 4.5f;
     public float rotationSpeed = 10f;
-    public float gravity = -9.81f;
+    public float gravity = -20f;
 
     [Header("Jump")]
-    public float jumpHeight = 2f;
+    public float jumpHeight = 1.4f;
 
     [Header("Legacy Animation")]
     public Animation characterAnimation;
@@ -18,13 +17,14 @@ public class Char9Movement : MonoBehaviour
 
     [Header("Interaction")]
     public KeyCode interactKey = KeyCode.E;
+    public KeyCode deathKey = KeyCode.F;
 
     private CharacterController controller;
-    private Vector3 velocity;
+    private Transform cameraTransform;
+    private float verticalSpeed;
 
     private bool isDead = false;
     private bool isInteracting = false;
-    private bool isJumping = false;
 
     private float interactionEndTime;
     private string currentAnimation = "";
@@ -32,17 +32,14 @@ public class Char9Movement : MonoBehaviour
     void Awake()
     {
         controller = GetComponent<CharacterController>();
+        cameraTransform = Camera.main != null ? Camera.main.transform : null;
 
         if (characterAnimation == null)
         {
             characterAnimation = GetComponentInChildren<Animation>();
         }
 
-        if (characterAnimation == null)
-        {
-            Debug.LogError("Char9Movement: Không tìm thấy Animation component!");
-            return;
-        }
+        if (characterAnimation == null) return;
 
         SetupAnimation("Idle", WrapMode.Loop);
         SetupAnimation("Run", WrapMode.Loop);
@@ -55,7 +52,17 @@ public class Char9Movement : MonoBehaviour
 
     void Update()
     {
+        if (Input.GetKeyDown(deathKey))
+        {
+            Die();
+        }
+
         if (isDead) return;
+
+        if (cameraTransform == null && Camera.main != null)
+        {
+            cameraTransform = Camera.main.transform;
+        }
 
         if (isInteracting && Time.time >= interactionEndTime)
         {
@@ -65,52 +72,35 @@ public class Char9Movement : MonoBehaviour
         float horizontal = Input.GetAxisRaw("Horizontal");
         float vertical = Input.GetAxisRaw("Vertical");
 
-        Vector3 direction = new Vector3(horizontal, 0f, vertical).normalized;
+        Vector3 forward = cameraTransform != null ? Vector3.ProjectOnPlane(cameraTransform.forward, Vector3.up).normalized : Vector3.forward;
+        Vector3 right = cameraTransform != null ? Vector3.ProjectOnPlane(cameraTransform.right, Vector3.up).normalized : Vector3.right;
+        Vector3 direction = Vector3.ClampMagnitude(right * horizontal + forward * vertical, 1f);
 
-        if (!isInteracting && direction.magnitude > 0.1f)
+        if (controller.isGrounded)
         {
-            controller.Move(direction * moveSpeed * Time.deltaTime);
+            if (verticalSpeed < 0f)
+            {
+                verticalSpeed = -1f;
+            }
 
-            Quaternion targetRotation = Quaternion.LookRotation(direction);
+            if (!isInteracting && Input.GetKeyDown(KeyCode.Space))
+            {
+                verticalSpeed = Mathf.Sqrt(jumpHeight * -2f * gravity);
+                PlayAnimation("Jump");
+            }
+        }
+
+        verticalSpeed += gravity * Time.deltaTime;
+
+        Vector3 movement = isInteracting ? Vector3.zero : direction * moveSpeed;
+        movement += Vector3.up * verticalSpeed;
+
+        controller.Move(movement * Time.deltaTime);
+
+        if (!isInteracting && direction.sqrMagnitude > 0.001f)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(direction, Vector3.up);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
-        }
-
-        bool isGrounded = controller.isGrounded;
-
-        if (isGrounded && velocity.y < 0f)
-        {
-            velocity.y = -2f;
-        }
-
-        if (isGrounded && !isInteracting && Input.GetKeyDown(KeyCode.Space))
-        {
-            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-            isJumping = true;
-            PlayAnimation("Jump");
-        }
-
-        velocity.y += gravity * Time.deltaTime;
-        controller.Move(velocity * Time.deltaTime);
-
-        if (controller.isGrounded && velocity.y <= 0f)
-        {
-            isJumping = false;
-        }
-
-        UpdateAnimation(direction);
-
-        if (Input.GetKeyDown(interactKey) && controller.isGrounded && !isInteracting)
-        {
-            Interact();
-        }
-    }
-
-    private void UpdateAnimation(Vector3 direction)
-    {
-        if (isDead)
-        {
-            PlayAnimation("Death");
-            return;
         }
 
         if (isInteracting)
@@ -119,19 +109,18 @@ public class Char9Movement : MonoBehaviour
             return;
         }
 
-        if (isJumping || !controller.isGrounded)
+        if (!controller.isGrounded)
         {
             PlayAnimation("Jump");
-            return;
-        }
-
-        if (direction.magnitude > 0.1f)
-        {
-            PlayAnimation("Run");
         }
         else
         {
-            PlayAnimation("Idle");
+            PlayAnimation(direction.sqrMagnitude > 0.001f ? "Run" : "Idle");
+        }
+
+        if (Input.GetKeyDown(interactKey) && controller.isGrounded && !isInteracting)
+        {
+            Interact();
         }
     }
 
@@ -157,7 +146,16 @@ public class Char9Movement : MonoBehaviour
 
         isDead = true;
         isInteracting = false;
-        PlayAnimation("Death");
+
+        if (characterAnimation != null && characterAnimation["Death"] != null)
+        {
+            characterAnimation.Stop();
+            characterAnimation["Death"].time = 0f;
+            characterAnimation.Play("Death", PlayMode.StopAll);
+            currentAnimation = "Death";
+        }
+
+        controller.enabled = false;
     }
 
     private void SetupAnimation(string animationName, WrapMode wrapMode)
@@ -166,11 +164,7 @@ public class Char9Movement : MonoBehaviour
 
         AnimationState state = characterAnimation[animationName];
 
-        if (state == null)
-        {
-            Debug.LogWarning("Char9Movement: Thiếu animation " + animationName);
-            return;
-        }
+        if (state == null) return;
 
         state.wrapMode = wrapMode;
     }

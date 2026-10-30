@@ -1750,7 +1750,7 @@ Light:
   m_Type: 1
   m_Shape: 0
   m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
-  m_Intensity: 1
+  m_Intensity: 1.1
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -2619,6 +2619,13 @@ MonoBehaviour:
   jumpHeight: 2.5
   characterAnimation: {fileID: 0}
   animationFadeTime: 0.12
+  runSound: {fileID: 8300000, guid: 212999e846a63f546a1b87445ef94950, type: 3}
+  jumpSound: {fileID: 8300000, guid: 4c324781106e20a44b7a3ed1d66ed5e0, type: 3}
+  interactionSound: {fileID: 8300000, guid: 4f3aa8d4a2cff5440a59b2affa1c4622, type: 3}
+  deathSound: {fileID: 8300000, guid: 5ad3e49dc2a56bd4a9f600809867efbd, type: 3}
+  doorSound: {fileID: 8300000, guid: 5d94f426c366c1f4686fff2615e3a766, type: 3}
+  winSound: {fileID: 8300000, guid: 1dd7f703cbefe9545b6b0713f26c8b87, type: 3}
+  runSoundInterval: 0.5
 --- !u!143 &1035874763
 CharacterController:
   m_ObjectHideFlags: 0

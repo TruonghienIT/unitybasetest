@@ -157,6 +157,9 @@ public sealed class ObjectInteraction : MonoBehaviour
         {
             if (!_isOpen)
                 ChooseInwardDirection();
+
+            _player.PlayDoorSound();
+
             StartCoroutine(SetDoorOpen(!_isOpen));
         }
 

@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿
+using UnityEngine;
+
 [RequireComponent(typeof(CharacterController))]
 public class Char9Movement : MonoBehaviour
 {
@@ -14,9 +16,20 @@ public class Char9Movement : MonoBehaviour
     public Animation characterAnimation;
     public float animationFadeTime = 0.12f;
 
+    [Header("Audio")]
+    [SerializeField] private AudioClip runSound;
+    [SerializeField] private AudioClip jumpSound;
+    [SerializeField] private AudioClip interactionSound;
+    [SerializeField] private AudioClip deathSound;
+    [SerializeField] private AudioClip doorSound;
+    [SerializeField] private AudioClip winSound;
+    [SerializeField, Min(0.1f)] private float runSoundInterval = 0.5f;
+
     private CharacterController controller;
     private Transform cameraTransform;
+    private AudioSource audioSource;
     private float verticalSpeed;
+    private float nextRunSoundAt;
 
     private bool isDead = false;
     private bool isInteracting = false;
@@ -31,6 +44,13 @@ public class Char9Movement : MonoBehaviour
     {
         controller = GetComponent<CharacterController>();
         cameraTransform = Camera.main != null ? Camera.main.transform : null;
+
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+            audioSource = gameObject.AddComponent<AudioSource>();
+
+        audioSource.playOnAwake = false;
+        audioSource.spatialBlend = 0f;
 
         if (characterAnimation == null)
         {
@@ -80,6 +100,7 @@ public class Char9Movement : MonoBehaviour
             {
                 verticalSpeed = Mathf.Sqrt(jumpHeight * -2f * gravity);
                 PlayAnimation("Jump");
+                PlaySound(jumpSound);
             }
         }
 
@@ -97,6 +118,8 @@ public class Char9Movement : MonoBehaviour
             Quaternion targetRotation = Quaternion.LookRotation(direction, Vector3.up);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
         }
+
+        SetRunSound(!isInteracting && controller.isGrounded && direction.sqrMagnitude > 0.001f);
 
         if (isInteracting)
         {
@@ -128,6 +151,9 @@ public class Char9Movement : MonoBehaviour
 
         interactionEndTime = Time.time + duration;
         PlayAnimation("Interact");
+
+        SetRunSound(false);
+        PlaySound(interactionSound);
     }
 
     public void Die()
@@ -136,6 +162,9 @@ public class Char9Movement : MonoBehaviour
 
         isDead = true;
         isInteracting = false;
+
+        SetRunSound(false);
+        PlaySound(deathSound);
 
         if (characterAnimation != null && characterAnimation["Death"] != null)
         {
@@ -146,6 +175,16 @@ public class Char9Movement : MonoBehaviour
         }
 
         controller.enabled = false;
+    }
+
+    public void PlayDoorSound()
+    {
+        PlaySound(doorSound);
+    }
+
+    public void PlayWinSound()
+    {
+        PlaySound(winSound);
     }
 
     private void OnControllerColliderHit(ControllerColliderHit hit)
@@ -175,5 +214,24 @@ public class Char9Movement : MonoBehaviour
 
         characterAnimation.CrossFade(animationName, animationFadeTime);
         currentAnimation = animationName;
+    }
+
+    private void SetRunSound(bool shouldPlay)
+    {
+        if (!shouldPlay || runSound == null)
+        {
+            nextRunSoundAt = 0f;
+            return;
+        }
+
+        if (Time.time < nextRunSoundAt) return;
+
+        PlaySound(runSound);
+        nextRunSoundAt = Time.time + runSoundInterval;
+    }
+
+    private void PlaySound(AudioClip clip)
+    {
+        if (clip != null && audioSource != null) audioSource.PlayOneShot(clip);
     }
 }

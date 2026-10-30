@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿
+using UnityEngine;
 using UnityEngine.EventSystems;
 
 public class FreeCamera : MonoBehaviour
@@ -22,6 +23,7 @@ public class FreeCamera : MonoBehaviour
 
     private float _yaw;
     private float _pitch = 15f;
+    private bool isRotating;
 
     private void Start()
     {
@@ -38,7 +40,17 @@ public class FreeCamera : MonoBehaviour
     {
         if (target == null) return;
 
-        if (Input.GetMouseButton(0) && (EventSystem.current == null || !EventSystem.current.IsPointerOverGameObject()))
+        if (Input.GetMouseButtonDown(0))
+        {
+            isRotating = EventSystem.current == null || !EventSystem.current.IsPointerOverGameObject();
+        }
+
+        if (Input.GetMouseButtonUp(0))
+        {
+            isRotating = false;
+        }
+
+        if (isRotating && Input.GetMouseButton(0))
         {
             _yaw += Input.GetAxis("Mouse X") * sensitivity;
             _pitch = Mathf.Clamp(_pitch - Input.GetAxis("Mouse Y") * sensitivity, minPitch, maxPitch);

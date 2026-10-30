@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 using UnityEngine.SceneManagement;
 public class UIManager : MonoBehaviour
 {
@@ -13,6 +14,7 @@ public class UIManager : MonoBehaviour
     private bool isPaused;
     private bool lossShown;
     private bool winShown;
+    private bool isShowingLoss;
 
     private void Start()
     {
@@ -31,7 +33,7 @@ public class UIManager : MonoBehaviour
 
         if (player != null && player.IsDead)
         {
-            ShowLoss();
+            StartCoroutine(ShowLossAfterDeath());
             return;
         }
 
@@ -53,6 +55,31 @@ public class UIManager : MonoBehaviour
         Time.timeScale = 0f;
     }
 
+    private IEnumerator ShowLossAfterDeath()
+    {
+        isShowingLoss = true;
+
+        if (isPaused)
+        {
+            isPaused = false;
+            if (pausePanel != null) pausePanel.SetActive(false);
+            Time.timeScale = 1f;
+        }
+
+        if (player != null && player.characterAnimation != null)
+        {
+            AnimationState death = player.characterAnimation["Death"];
+
+            if (death != null)
+            {
+                float duration = death.length / Mathf.Max(Mathf.Abs(death.speed), 0.01f);
+                yield return new WaitForSeconds(duration);
+            }
+        }
+
+        ShowLoss();
+    }
+
     public void ShowLoss()
     {
         if (lossShown || winShown) return;
@@ -69,7 +96,7 @@ public class UIManager : MonoBehaviour
 
     public void TogglePause()
     {
-        if (lossShown || winShown) return;
+        if (lossShown || winShown || isShowingLoss) return;
 
         isPaused = !isPaused;
         if (pausePanel != null) pausePanel.SetActive(isPaused);

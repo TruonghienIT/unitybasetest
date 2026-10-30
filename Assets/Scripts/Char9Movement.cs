@@ -1,22 +1,18 @@
 ﻿using UnityEngine;
-
 [RequireComponent(typeof(CharacterController))]
 public class Char9Movement : MonoBehaviour
 {
     [Header("Movement")]
     public float moveSpeed = 4.5f;
     public float rotationSpeed = 10f;
-    public float gravity = -20f;
+    public float gravity = -15f;
 
     [Header("Jump")]
-    public float jumpHeight = 1.4f;
+    public float jumpHeight = 2.5f;
 
     [Header("Legacy Animation")]
     public Animation characterAnimation;
     public float animationFadeTime = 0.12f;
-
-    [Header("Interaction")]
-    public KeyCode deathKey = KeyCode.F;
 
     private CharacterController controller;
     private Transform cameraTransform;
@@ -54,11 +50,6 @@ public class Char9Movement : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(deathKey))
-        {
-            Die();
-        }
-
         if (isDead) return;
 
         if (cameraTransform == null && Camera.main != null)
@@ -98,6 +89,8 @@ public class Char9Movement : MonoBehaviour
         movement += Vector3.up * verticalSpeed;
 
         controller.Move(movement * Time.deltaTime);
+
+        if (isDead) return;
 
         if (!isInteracting && direction.sqrMagnitude > 0.001f)
         {
@@ -153,6 +146,15 @@ public class Char9Movement : MonoBehaviour
         }
 
         controller.enabled = false;
+    }
+
+    private void OnControllerColliderHit(ControllerColliderHit hit)
+    {
+        TrapDeath trap = hit.collider.GetComponentInParent<TrapDeath>();
+        DeathZone fallZone = hit.collider.GetComponentInParent<DeathZone>();
+
+        if (trap != null) trap.KillPlayer(this);
+        if (fallZone != null) fallZone.KillPlayer(this);
     }
 
     private void SetupAnimation(string animationName, WrapMode wrapMode)

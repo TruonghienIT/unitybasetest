@@ -8,8 +8,8 @@ public class FreeCamera : MonoBehaviour
     [SerializeField] private Transform target;
 
     [Header("Camera Settings")]
-    [SerializeField] private float distance = 5f;
-    [SerializeField] private float targetHeight = 1.6f;
+    [SerializeField] private float distance = 7.5f;
+    [SerializeField] private float targetHeight = 1.4f;
     [SerializeField] private float sensitivity = 2.8f;
     [SerializeField] private float smoothSpeed = 8f;
 
@@ -24,7 +24,6 @@ public class FreeCamera : MonoBehaviour
     private float _yaw;
     private float _pitch = 15f;
     private bool isRotating;
-
     private void Start()
     {
         if (target == null)
@@ -35,7 +34,6 @@ public class FreeCamera : MonoBehaviour
 
         _yaw = transform.eulerAngles.y;
     }
-
     private void LateUpdate()
     {
         if (target == null) return;

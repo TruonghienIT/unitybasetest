@@ -4,7 +4,6 @@ using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-
 public sealed class ObjectInteraction : MonoBehaviour
 {
     [SerializeField] private bool opensDoor = true;
